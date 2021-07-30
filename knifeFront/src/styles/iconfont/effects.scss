@@ -1,0 +1,77 @@
+@font-face {
+  font-family: 'iconfont'; /* Project id 2590990 */
+  src: url('//at.alicdn.com/t/font_2590990_86iyinqny9b.woff2?t=1622767186058')
+      format('woff2'),
+    url('//at.alicdn.com/t/font_2590990_86iyinqny9b.woff?t=1622767186058')
+      format('woff'),
+    url('//at.alicdn.com/t/font_2590990_86iyinqny9b.ttf?t=1622767186058')
+      format('truetype');
+}
+
+.iconfont {
+  font-family: 'iconfont' !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-annotation:before {
+  content: '\e60f';
+}
+
+.icon-base-tile:before {
+  content: '\e610';
+}
+
+.icon-copy-canvas:before {
+  content: '\e611';
+}
+
+.icon-clockwise-rotation:before {
+  content: '\e612';
+}
+
+.icon-conversion:before {
+  content: '\e613';
+}
+
+.icon-staggered-laterally:before {
+  content: '\e614';
+}
+
+.icon-spin:before {
+  content: '\e615';
+}
+
+.icon-tiled:before {
+  content: '\e616';
+}
+
+.icon-mirror-tiling:before {
+  content: '\e617';
+}
+
+.icon-staggered-longitudinally:before {
+  content: '\e618';
+}
+
+.icon-reverse-rotation:before {
+  content: '\e619';
+}
+
+.icon-professional-design:before {
+  content: '\e61a';
+}
+
+.icon-prompt:before {
+  content: '\e61b';
+}
+
+.icon-link:before {
+  content: '\e61c';
+}
+
+.icon-rapid-design:before {
+  content: '\e61d';
+}

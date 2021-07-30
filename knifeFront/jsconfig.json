@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"]
+      },
+      "target": "ES6",
+      "module": "commonjs",
+      "allowSyntheticDefaultImports": true
+    },
+    "include": ["src/**/*", "jsconfig.json", "public/xlsx.mini.js"],
+    "exclude": ["node_modules"]
+  }
+  
