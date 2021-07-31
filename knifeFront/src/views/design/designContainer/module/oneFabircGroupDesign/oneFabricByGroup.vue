@@ -451,12 +451,21 @@ export default {
       //获取psd中每个组安全线的img列表和marker的列表
       // const { bgImgs, mkImgs } = await this.getAllImageDom()
       const coverDom = await getImgDom(this.chartPath + COMPRESS_DESIGN_AN_LI_STR)
-
+      console.log('this.info', this.info)
       const { base64, dDirW, dDirH, w, h } = await this.createDocumentCanvas({
         coverDom
       })
-      this.canvas.realWidth = w
-      this.canvas.realHeight = h
+
+        console.log('this.info', this.info)
+        if(this.info.width >= this.info.height) {
+             this.canvas.realWidth = 450
+            this.canvas.realHeight = 450 * this.info.height / this.info.width
+          } else {
+             this.canvas.realWidth = 450 * this.info.width / this.info.height
+              this.canvas.realHeight =450
+          }
+        console.log(' this.canvas.realWidth',  this.canvas.realWidth)
+        console.log(' this.canvas.realHeight',  this.canvas.realHeight)
 
       //运行一次效果图计算
       // this.prodShowSwiperRunCalc()

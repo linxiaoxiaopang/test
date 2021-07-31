@@ -452,13 +452,15 @@ export default {
       if (!this.oneGroupTransformListData.length) return
       const { groupIndex } = this
       const sourceJson = this.oneGroupTransformListData[groupIndex]
+      console.log('sourceJson', sourceJson)
       if (!sourceJson) return
       const instance = this.fabricList[groupIndex]
       const cJson = instance.canvas.toJSON()
       sourceJson.overlayImage = cJson.overlayImage
       instance.canvas.loadFromJSON(sourceJson, (c) => {
         instance.canvas.renderAll()
-
+        const os =  instance.canvas.getObjects()
+        console.log('os', os)
         // this.canvasModifiedHandler()
       })
     },

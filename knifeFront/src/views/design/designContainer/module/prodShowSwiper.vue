@@ -56,6 +56,8 @@ import {
   MAKER,
   DESIGN_SHOW_AREA_W,
   DESIGN_SHOW_AREA_H,
+  DESIGN_AREA_W,
+  DESIGN_AREA_H,
   DESIGN_PROPORTION,
   COMPRESS_MAX_LONG_STR
 } from '@/utils/constant'
@@ -326,6 +328,30 @@ export default {
     //     }
     //   }
     // },
+
+    formatCarefulJson (c, json) {
+      const oObjects = c.getObjects()
+      const os = json.objects
+      os.map((o, index) => {
+        if (o.type === 'group') {
+          if (!oObjects[index + 1]) return
+          const { scaleX, scaleY } = oObjects[index + 1]
+          const gs = o.objects
+          gs.map((g) => {
+            g.scaleX = scaleX
+            g.scaleY = scaleY
+          
+          })
+        } else {
+          if (oObjects[index]) {
+            const { scaleX, scaleY } = oObjects[index]
+            o.scaleX = scaleX
+            o.scaleY = scaleY
+          }
+        }
+      })
+    },
+
     createGroupToRotate(canvas, index) {
       //旋转角度
       let angle = 0
@@ -356,7 +382,124 @@ export default {
       canvas.remove(g)
     },
 
+    oneGroupDesignToChunkDesign (instanceIndex) {
+      const {
+          l,
+          t,
+          w,
+          h,
+          moveL,
+          moveT,
+          scaleX,
+          scaleY,
+          oRadio,
+          cL,
+          cT
+        } = this.getTransformation(instanceIndex)
+        const canvas =
+          this.getOnGroupDesiginInstanceByIndex(instanceIndex).canvas
+        const json = canvas.toJSON()
+
+        const objects = json.objects
+        const iObjects = canvas.getObjects()
+        for(let i = objects.length; i--; i>=0 ) {
+         
+          const layer = objects[i]
+          const index = i
+
+          
+           if (layer.type === 'group') {
+            if (!objects[index + 1]) return
+            const { scaleX:lScaleX, scaleY: lScaleY, left, top } = objects[index + 1]
+             let { x, y } = iObjects[index + 1].getCenterPoint()
+            const dirMoveL =
+              (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
+            const dirMoveT =
+              (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
+
+            const gs = layer.objects
+            gs.map((g) => {
+              g.scaleX = lScaleX
+              g.scaleY = lScaleY
+              g.top = (g.top * scaleX + dirMoveT) 
+              g.left =  (g.left  * scaleY + dirMoveL)
+
+              // console.log('ggggggg', g)
+            })
+            console.log('gs', gs.length)
+          }  else {
+            
+             let { x, y } = iObjects[index].getCenterPoint()
+            const dirMoveL =
+              (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
+            const dirMoveT =
+              (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
+
+            layer.scaleX = iObjects[index].scaleX * scaleX
+            layer.scaleY = iObjects[index].scaleY * scaleY
+            layer.left = iObjects[index].left + dirMoveL
+            layer.top = iObjects[index].top + dirMoveT
+            layer.id = iObjects[index].id
+          }
+
+        }
+        
+
+        // console.log('json', json)
+        return json
+           
+    },
+
+     getTransformation(instanceIndex) {
+      let canvas = this.getOnGroupDesiginInstanceByIndex(instanceIndex).canvas
+
+      const { left: cL, top: cT } = canvas.getCenter()
+      const { max } = Math
+  
+      const {
+        module: { width: dW, height: dH }
+      } = this.getModuleByGroupIndex(instanceIndex)
+
+      const {
+        l,
+        t,
+        w,
+        h,
+        scaleX: iScaleX,
+        scaleY: iScaleY,
+        pW,
+        pH
+      } = this.oneGroupDesignLayerPosData[instanceIndex]
+
+      let oRadio = max(w, h) / DESIGN_AREA_W
+      const scale = max(pW, pH) / max(dW, dH)
+      const moveL = cL - (l + w / 2)
+      const moveT = cT - (t + h / 2)
+
+      let scaleX = 1 / scale
+      let scaleY = 1 / scale
+
+      return { l, t, w, h, moveL, moveT, scaleX, scaleY, oRadio, cL, cT }
+    },
+
+
+    getRealWidthAndHeight ({pW, pH}) {
+      let realWidth = 0 , realHeight = 0
+      if(pW >= pH) {
+          realWidth = DESIGN_AREA_W
+          realHeight = DESIGN_AREA_W * pH / pW
+        } else {
+          realWidth = DESIGN_AREA_H * pW / pH
+          realHeight = DESIGN_AREA_H
+        }
+         return {
+          realWidth, realHeight
+        }
+
+    },
+
     async getComputedData(whiteShowArr, index) {
+      const t0 = performance.now()
       whiteShowArr.map(async (white_show, sIndex) => {
         const computedData = {}
         computedData.white_show = white_show
@@ -378,7 +521,7 @@ export default {
           }
           const pArr = klMasksData.map(async (klMasksItem, k) => {
             computedData.data[k] = {}
-            const { left, top, width, height, img_url } = klMasksItem
+            let { left, top, width, height, img_url } = klMasksItem
             const kl_mask = {
               left,
               top,
@@ -386,6 +529,17 @@ export default {
               height,
               img_url
             }
+            // if(this.isOneGroupDesign) {
+            //   const {
+            //     module: { width: dW, height: dH },
+            //     group: { quick_design_left: mL, quick_design_top: mT }
+            //   } = this.getModuleByGroupIndex(k)
+            //   width = dW
+            //   height = dH
+
+            // }
+
+            
 
             computedData.data[k].kl_mask = kl_mask
 
@@ -402,9 +556,36 @@ export default {
                 fabricListItem = this.getOnGroupDesiginInstanceByIndex(k)
               }
 
-              const { realWidth, realHeight } = fabricListItem
+              let {realWidth, realHeight} = this.getRealWidthAndHeight({pW: width, pH: height})
+
+              console.log(`kkk_${k}`, realWidth, realHeight)
+              //获取 realWidth和realHeight
+              // if(realWidth === undefined || realHeight === undefined) {
+              //     await new Promise(resolve => {
+              //       let timer = setInterval(() => {
+              //         realWidth = fabricListItem.realWidth
+              //         realHeight = fabricListItem.realHeight
+              //     if(realWidth&&realHeight) {
+              //       clearInterval(timer)
+              //       resolve(true)
+              //     }
+                  
+              //   }, 20)
+              //   })
+              
+              // }
+
               const oObjects = fabricListItem.getObjects()
-              const json = fabricListItem.canvas.toJSON()
+              let json = fabricListItem.canvas.toJSON()
+              if(this.isOneGroupDesign) {
+                //获取转换之后的json
+               json = this.oneGroupDesignToChunkDesign(k)
+              } else {
+                this.formatCarefulJson(fabricListItem, json)
+              }
+
+              console.log('json1111', json)
+              
               this.cloneCanvas[k].loadFromJSON(json, () => {
                 const c = this.cloneCanvas[k]
 
@@ -422,34 +603,42 @@ export default {
                   rH: realHeight,
                   size: Math.max(white_show.width, white_show.height)
                 })
-                console.log('radio', radio)
-                //存在复制情况下scaleX，scaleY精度不够
-                const os = c.getObjects()
-                os.map((o, index) => {
-                  if (o.type === 'group') {
-                    if (!oObjects[index + 1]) return
-                    const { scaleX, scaleY } = oObjects[index + 1]
-                    const gs = o.getObjects()
-                    gs.map((g) => {
-                      g.setOptions({
-                        scaleX,
-                        scaleY
-                      })
-                    })
-                  } else {
-                    if (oObjects[index]) {
-                      const { scaleX, scaleY } = oObjects[index]
-                      o.setOptions({
-                        scaleX,
-                        scaleY
-                      })
-                    }
-                  }
-                })
 
-                c.setZoom(radio)
-                c.setHeight(fabricListItem.canvas.getHeight() * radio)
-                c.setWidth(fabricListItem.canvas.getWidth() * radio)
+                console.log(`radio_${k}`, radio)
+                
+                //存在复制情况下scaleX，scaleY精度不够
+                // if(!this.isOneGroupDesign) {
+                //    const os = c.getObjects()
+                //   os.map((o, index) => {
+                //     if (o.type === 'group') {
+                //       if (!oObjects[index + 1]) return
+                //       const { scaleX, scaleY } = oObjects[index + 1]
+                //       const gs = o.getObjects()
+                //       gs.map((g) => {
+                //         g.setOptions({
+                //           scaleX,
+                //           scaleY
+                //         })
+                //       })
+                //     } else {
+                //       if (oObjects[index]) {
+                //         const { scaleX, scaleY } = oObjects[index]
+                //         o.setOptions({
+                //           scaleX,
+                //           scaleY
+                //         })
+                //       }
+                //     }
+                //   })
+                // }
+               
+                //新增解决浏览器放大缩小的问题
+                const devicePixelRatio =  window.devicePixelRatio
+                c.setZoom(radio / devicePixelRatio)
+                c.setHeight(fabricListItem.canvas.getHeight() * radio / devicePixelRatio)
+                c.setWidth(fabricListItem.canvas.getWidth() * radio / devicePixelRatio)
+
+
                 c.overlayImage = null
                 // const { t, l, w, h } = this.getClipPos({
                 //   cW: DESIGN_SHOW_AREA_W,
@@ -457,6 +646,7 @@ export default {
                 //   rW: realWidth,
                 //   rH: realHeight
                 // })
+
                 const { t, l, w, h } = this.getClipPos({
                   cW: DESIGN_SHOW_AREA_W * radio,
                   cH: DESIGN_SHOW_AREA_H * radio,
@@ -468,40 +658,110 @@ export default {
 
                 let wRadio = width / w
                 let hRadio = height / h
-                let data = []
-                if (this.isOneGroupDesign) {
-                  const {
-                    scaleX: iScaleX,
-                    scaleY: iScaleY,
-                    l: iL,
-                    t: iT,
-                    w: iW,
-                    h: iH
-                  } = this.getTransformationByPsdDocument({
-                    mW: width,
-                    mH: height,
-                    mT: top,
-                    mL: left,
-                    cW: w,
-                    cH: h,
-                    cL: l,
-                    cT: t,
-                    index: k
-                  })
-                  wRadio = wRadio / iScaleX
-                  hRadio = hRadio / iScaleY
+            
+                // let data = []
+                // if (this.isOneGroupDesign) {
+                //   const {
+                //     scaleX: iScaleX,
+                //     scaleY: iScaleY,
+                //     l: iL,
+                //     t: iT,
+                //     w: iW,
+                //     h: iH
+                //   } = this.getTransformationByPsdDocument({
+                //     mW: kl_mask.width,
+                //     mH: kl_mask.height,
+                //     mT: top,
+                //     mL: left,
+                //     cW: w,
+                //     cH: h,
+                //     cL: l,
+                //     cT: t,
+                //     index: k
+                //   })
+                //   wRadio = wRadio / iScaleX
+                //   hRadio = hRadio / iScaleY
 
-                  const { round } = Math
-                  data = c.getContext('2d').getImageData(round(iL + l), round(iT + t), parseInt(iW), parseInt(iH))
-                } else {
-                  const { round } = Math
-                  data = c.getContext('2d').getImageData(round(l), round(t), parseInt(w), parseInt(h))
-                }
+                //   const { round, ceil } = Math
+                //   try {
+                  
+                //     data = c.getContext('2d').getImageData(round(iL + l), round(iT + t), round(iW), round(iH))
 
+                //        // const data1 =  c.getContext('2d').getImageData(0, 0, c.width, c.height)
+                // //   console.log('data1', data1)
+                //   //  let c1 = document.createElement('canvas')
+                //   //   const ctx = c1.getContext('2d')
+                //   //  c1.width =iW
+                //   // c1.height = iH
+                 
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, 700 * radio, 700 * radio), 0, 0)
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, c.width, c.height), 0, 0)
+                //   // ctx.putImageData(data, 0, 0)
+                //             //  const base64 = c1.toDataURL()
+                //   // const base64 = c.toDataURL()
+                //   // console.log('base64',base64)
+
+
+                //   } catch(err) {
+                //     console.log(err)
+                //     data = {
+                //       data: [],
+                //       width: 0,
+                //       height: 0
+                //     }
+                //   }
+                // } else {
+                //   const { round } = Math
+                //   try {
+                  
+                //   // const devicePixelRatio =  window.devicePixelRatio
+
+
+                //   // data = c.getContext('2d').getImageData(round(l * devicePixelRatio), round(t * devicePixelRatio), parseInt(w/devicePixelRatio), parseInt(h * devicePixelRatio))
+                //   // data = c.getContext('2d').getImageData(round(l * devicePixelRatio), round(t * devicePixelRatio), parseInt(w*devicePixelRatio), parseInt(h * devicePixelRatio))
+                //   data = c.getContext('2d').getImageData(round(l ), round(t ), round(w), round(h ))
+
+                //   //   wRadio = wRadio / devicePixelRatio
+                //   // hRadio = hRadio / devicePixelRatio
+
+                // // const data1 =  c.getContext('2d').getImageData(0, 0, c.width, c.height)
+                // //    let c1 = document.createElement('canvas')
+                // //     const ctx = c1.getContext('2d')
+                // //    c1.width =w
+                // //   c1.height = h
+               
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, 700 * radio, 700 * radio), 0, 0)
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, c.width, c.height), 0, 0)
+                //   // ctx.putImageData(data, 0, 0)
+                //   //            const base64 = c1.toDataURL()
+                //   // const base64 = c.toDataURL()
+                //             //  console.log('base64', base64)
+                //   } catch(err) {
+                //      console.log(err)
+                //       data = {
+                //       data: [],
+                //       width: 0,
+                //       height: 0
+                //     }
+                //   }
+                 
+                // }
+                const { round } = Math
+                const data = c.getContext('2d').getImageData(round(l), round(t), round(w), round(h))
+
+                //  let c1 = document.createElement('canvas')
+                //     const ctx = c1.getContext('2d')
+                //    c1.width =data.width
+                //   c1.height = data.height
+                 
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, 700 * radio, 700 * radio), 0, 0)
+                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, c.width, c.height), 0, 0)
+                //   ctx.putImageData(data, 0, 0)
+                //             //  const base64 = c1.toDataURL()
+                //   const base64 = c.toDataURL()
+                //   console.log(`base64_${k}`, base64)
                 kl_mask.wRadio = wRadio
                 kl_mask.hRadio = hRadio
-                console.log('wRadio', wRadio)
-                console.log('hRadio', hRadio)
                 data.cols = data.width
                 data.rows = data.height
                 resolve(data)
@@ -518,7 +778,10 @@ export default {
 
           await Promise.all(pArr)
           // //运行worker
-
+          const t1 = performance.now()
+        //   console.log('t1', t1)
+        //   console.log('t1 - t0', t1 - t0)
+        //  console.log('main t', (new Date()).getTime()) 
           this.runWoker(index, sIndex, computedData)
           // this.getProShowBase64(white_show, index, sIndex)
         } catch (err) {
@@ -529,9 +792,11 @@ export default {
 
     //计算合适的比率
     getCalcRadio({ w, h, rW, rH, size }) {
-      console.log('size', size)
       const { max } = Math
       const maxSize = max(size, w, h)
+      // return {
+      //   radio:  max(w, h) / max(rW, rH)
+      // }
       if (w >= h) {
         if (maxSize === size) {
           return {
@@ -668,10 +933,10 @@ export default {
             tmpArr.push({
               scaleX,
               scaleY,
-              l: parseInt(iL + l),
-              t: parseInt(iT + t),
-              w: parseInt(iW),
-              h: parseInt(iH),
+              l: iL + l,
+              t: iT + t,
+              w: iW,
+              h: iH,
               pW,
               pH
             })
@@ -686,7 +951,6 @@ export default {
       if (this.picWrapperLoading === true) {
         await new Promise((resolve) => {
           let timer = setInterval(() => {
-            console.log('this.picWrapperLoading', this.picWrapperLoading)
             if (this.picWrapperLoading == false) {
               clearInterval(timer)
 

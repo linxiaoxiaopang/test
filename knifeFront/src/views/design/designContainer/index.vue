@@ -224,7 +224,7 @@ export default {
       this.knifeData = []
       this.quickDesignData = []
       const { prodShowSwiper } = this.$refs
-      this.tabActiveIndex = '1'
+      this.tabActiveIndex = '0'
       this.knifeActiveIndex = '0'
       if (prodShowSwiper) {
         prodShowSwiper.resetSwiper()
@@ -315,6 +315,7 @@ export default {
     },
 
     prodShowSwiperRunCalc() {
+      console.log('join')
       const { prodShowSwiper } = this.$refs
       prodShowSwiper.runCalc()
     },

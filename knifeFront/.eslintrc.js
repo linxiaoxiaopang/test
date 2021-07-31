@@ -12,7 +12,8 @@ module.exports = {
   },
   globals: {
     $SUC: false,
-    thunderLink: false
+    thunderLink: false,
+    fabric: false
   },
   extends: [
     //

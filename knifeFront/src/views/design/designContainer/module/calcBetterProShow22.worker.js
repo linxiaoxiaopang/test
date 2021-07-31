@@ -1,6 +1,8 @@
 // eslint-disable-next-line no-undef
 importScripts('js/UZIP.js', 'js/pako.js', 'js/URNG.js')
 onmessage = async function (evt) {
+  console.log('performance.now()', performance.now())
+  console.log('work t', (new Date()).getTime()) 
   let { white_show, shadow_show, data, show_image_mapxy } = evt.data
   data.map((item) => {
     let { kl_mask, front_design, klMaskImg } = item
