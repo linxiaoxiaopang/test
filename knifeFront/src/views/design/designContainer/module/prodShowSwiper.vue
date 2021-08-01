@@ -59,7 +59,8 @@ import {
   DESIGN_AREA_W,
   DESIGN_AREA_H,
   DESIGN_PROPORTION,
-  COMPRESS_MAX_LONG_STR
+  COMPRESS_MAX_LONG_STR,
+  INIT_GTOUP_INFO_FORM
 } from '@/utils/constant'
 
 export default {
@@ -393,21 +394,50 @@ export default {
       return p
     },
 
-       getRotatePoint ({rX, rY, oX, oY, angle}) {
-            const {PI, cos, sin} = Math
-            const rotate = PI/180 * -angle
-            let x = (rX - oX) * cos(rotate) - (rY - oY) * sin(rotate) + oX
-            let y = (rY - oY) * cos(rotate) + (rX - oX) * sin(rotate) + oY
-            console.log(x, y)
-            const dirX = x - rX
-            const dirY = y - rY
-            console.log(dirX, dirY)
-            return {
-                dirX,
-                dirY
-            }
-        },
-       
+    getRotatePoint ({rX, rY, oX, oY, angle}) {
+        const {PI, cos, sin} = Math
+        const rotate = PI/180 * -angle
+        let x = (rX - oX) * cos(rotate) - (rY - oY) * sin(rotate) + oX
+        let y = (rY - oY) * cos(rotate) + (rX - oX) * sin(rotate) + oY
+        console.log(x, y)
+        const dirX = x - rX
+        const dirY = y - rY
+        console.log(dirX, dirY)
+        return {
+            dirX,
+            dirY
+        }
+    },
+    
+    transformToCanvasCenter (layer) {
+      const {floor} = Math
+      const [cX, cY] = [DESIGN_SHOW_AREA_W /2, DESIGN_SHOW_AREA_W /2]
+      const { scaleX, scaleY, left, top, width, height, groupHorizontal, groupVertical, groupType } = layer
+      console.log('groupHorizontal, groupVertical, groupType', groupHorizontal, groupVertical, groupType)
+      const [lW, lH] = [width*scaleX , height*scaleY]
+      // const [lX, lY] = [left + lW / 2, top + lH  / 2]
+      const [lX, lY] = [left, top]
+      const hYymbolDirection = cX >= lX ? 1 : -1  
+      const vYymbolDirection = cY >= lY ? 1 : -1  
+      let xStep = lW + hYymbolDirection * groupHorizontal
+      let yStep = lH + vYymbolDirection * groupVertical
+      if(groupType == 2) {
+         xStep = xStep + hYymbolDirection * groupHorizontal
+      }
+      if(groupType == 3) {
+         yStep = yStep  + vYymbolDirection * groupVertical
+      }
+      const [moveX, moveY] = [floor((cX - lX) / xStep) * xStep, floor((cY - lY) / yStep) * yStep]
+      console.log('moveX, moveY', moveX, moveY)
+      return {moveX, moveY}
+    },
+
+    formatObjectsData(source, assign) {
+      const keys = Object.keys(INIT_GTOUP_INFO_FORM)
+      keys.forEach((key) => {
+        assign[key] = source[key]
+      })
+    },
 
     oneGroupDesignToChunkDesign (instanceIndex) {
       var t0 = performance.now()
@@ -439,44 +469,79 @@ export default {
           
            if (layer.type === 'group') {
             if (!objects[index + 1]) return
+
+            this.formatObjectsData(iObjects[index + 1], objects[index + 1])
+
+            
+
+            // objects[index + 1].left += moveX
+            // objects[index + 1].top += moveY
+
             const { scaleX:lScaleX, scaleY: lScaleY, left, top, width, height } = objects[index + 1]
+            
             objects[index].isDelete = true
              let { x, y } = iObjects[index + 1].getCenterPoint()
+            
             const dirMoveL =
               (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
             const dirMoveT =
               (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
               // layer.objects = [layer.objects[0]]
-            const gs = layer.objects
-            const cGs = iObjects[index].getObjects()
-            let dirL = 0
-              let dirT = 0
+             const gs = layer.objects
+
+                   
               layer.left = layer.left+dirMoveL
               layer.top = layer.top+dirMoveT
             gs.map((g, gIndex) => {
             
               g.scaleX = lScaleX
               g.scaleY = lScaleY
-
-              if(gIndex == 0) {
-                const {dirX, dirY} = this.getRotatePoint({rX: left - width *lScaleX / 2, rY:  top - height *lScaleX / 2, oX: left, oY: top, angle: 90})
-                dirL = dirX
-                dirT = dirY
-
-                console.log('dirL', dirL)
-                console.log('dirT', dirT)
-                console.log('left', left)
-                console.log('top', top)
-              }
-
-              // g.left =  (g.left * scaleX + dirMoveL) + dirL 
-              // g.top = (g.top * scaleY + dirMoveT) +dirT
-               g.left =  (g.left * scaleX) 
+              g.left =  (g.left * scaleX) 
               g.top = (g.top * scaleY) 
               
               
               
             })
+            const {width: gW, height:gH, scaleX: gScaleX, scaleY: gScaleY, left: gL, top: gT} = layer
+            const {width: i0W, height: i0H, scaleX: i0ScaleX, scaleY: i0ScaleY, left: i0L, top: i0T} = gs[0]
+            const {width: curW, height: curH, scaleX: curScaleX, scaleY: curScaleY, left: curL, top: curT} = objects[index + 1]
+          
+            //  const gPos ={
+            //    x: gL + gW * gScaleX / 2,
+            //    y: gT + gH * gScaleY / 2,
+            //  }
+
+              const gPos ={
+               x: gL,
+               y: gT,
+             }
+
+            //  const cPos = {
+            //     x: i0L + i0W * i0ScaleX / 2,
+            //    y: i0T +  i0H * i0ScaleY / 2,
+            //  }
+
+             const cPos = {
+                x: i0L,
+               y: i0T,
+             }
+
+            //   const curPos = {
+            //     x: curL + curW * curScaleX / 2,
+            //    y: curT + curH * curScaleY / 2,
+            //  }
+            const curPos = {
+                x: curL,
+               y: curT,
+             }
+            const {moveX, moveY} = this.transformToCanvasCenter(objects[index + 1]) 
+             console.log('curPos', curPos)
+             console.log('gPos', gPos)
+              layer.left = parseInt(layer.left + (curPos.x - (cPos.x + gPos.x))) + moveX
+              layer.top =  parseInt(layer.top + (curPos.y - (cPos.y + gPos.y))) + moveY
+              console.log('layer.left',layer.left)
+              console.log('layer.top',layer.top)
+            
             // console.log('gs', gs.length)
           }  else {
             

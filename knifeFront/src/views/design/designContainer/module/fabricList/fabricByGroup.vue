@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { fabricInstanceMixin } from '../../mixins'
+import { fabricInstanceMixin, copyLayerTileMixin } from '../../mixins'
 import { getCanvasDom } from '@/utils'
 import { mapMutations } from 'vuex'
 import {
@@ -63,7 +63,7 @@ const MIN_ADSORPTION_NUM = 15
 
 export default {
   inject: ['canvasModifiedHandler'],
-  mixins: [fabricInstanceMixin],
+  mixins: [fabricInstanceMixin, copyLayerTileMixin],
   props: {
     data: {
       type: Object,
@@ -459,6 +459,13 @@ export default {
       sourceJson.overlayImage = cJson.overlayImage
       instance.canvas.loadFromJSON(sourceJson, (c) => {
         instance.canvas.renderAll()
+        const objects = instance.getObjects()
+        objects.map(o => {
+          if(o.groupType !== undefined) {
+            this.baseTile(o.groupType, o, instance)
+          }
+        })
+        
         const os =  instance.canvas.getObjects()
         console.log('os', os)
         // this.canvasModifiedHandler()

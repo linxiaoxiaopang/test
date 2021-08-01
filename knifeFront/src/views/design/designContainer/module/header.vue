@@ -170,74 +170,98 @@ export default {
                 this.getOnGroupDesiginInstanceByIndex(instanceIndex).canvas
               const json = canvas.toJSON()
 
-              json.objects = json.objects
-              // json.objects = json.objects.filter(({type}) => type !== 'group')
+              // json.objects = json.objects
+              json.objects = json.objects.filter(({type}) => type !== 'group')
               const objects = json.objects
               console.log('scaleX, scaleY', scaleX, scaleY)
-              const iObjects = canvas.getObjects()
-              // const iObjects = canvas.getObjects().filter(({type}) => type !== 'group')
-              console.log('objects', objects)
-              console.log('iObjects', iObjects)
+              // const iObjects = canvas.getObjects()
+              const iObjects = canvas.getObjects().filter(({type}) => type !== 'group')
+        
           
-              // objects.map((layer, index) => {
-              //   let { x, y } = iObjects[index].getCenterPoint()
-              //   const dirMoveL =
-              //     (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
-              //   const dirMoveT =
-              //     (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
+              objects.map((layer, index) => {
+                let { x, y } = iObjects[index].getCenterPoint()
+                const dirMoveL =
+                  (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
+                const dirMoveT =
+                  (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
 
-              //   layer.scaleX = iObjects[index].scaleX * scaleX
-              //   layer.scaleY = iObjects[index].scaleY * scaleY
-              //   layer.left = iObjects[index].left + dirMoveL
-              //   layer.top = iObjects[index].top + dirMoveT
-              //   layer.id = iObjects[index].id
-              // })
+                layer.scaleX = iObjects[index].scaleX * scaleX
+                layer.scaleY = iObjects[index].scaleY * scaleY
+                layer.left = iObjects[index].left + dirMoveL
+                layer.top = iObjects[index].top + dirMoveT
+                layer.id = iObjects[index].id
+              })
 
-              for(let i = objects.length; i--; i>=0 ) {
+              // for(let i = objects.length; i--; i>=0 ) {
          
-                  const layer = objects[i]
-                  const index = i
+              //     const layer = objects[i]
+              //     const index = i
 
                   
-                  if (layer.type === 'group') {
-                    if (!objects[index + 1]) return
-                    const { scaleX:lScaleX, scaleY: lScaleY, left, top } = objects[index + 1]
-                    let { x, y } = iObjects[index + 1].getCenterPoint()
-                    const dirMoveL =
-                      (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
-                    const dirMoveT =
-                      (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
-                    layer.id = `${objects[index + 1].id}Group`
+              //     if (layer.type === 'group') {
+              //       if (!objects[index + 1]) return
+              //       const { scaleX:lScaleX, scaleY: lScaleY, left, top } = objects[index + 1]
+              //       let { x, y } = iObjects[index + 1].getCenterPoint()
+              //       const dirMoveL =
+              //         (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
+              //       const dirMoveT =
+              //         (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
+              //       layer.id = `${objects[index + 1].id}Group`
 
-                       layer.left = layer.left+dirMoveL
-                      layer.top = layer.top+dirMoveT
+              //          layer.left = layer.left+dirMoveL
+              //         layer.top = layer.top+dirMoveT
 
-                    const gs = layer.objects
-                    gs.map((g) => {
-                      g.scaleX = lScaleX
-                      g.scaleY = lScaleY
-                      g.top = (g.top * scaleX ) 
-                      g.left =  (g.left  * scaleY)
+              //       const gs = layer.objects
+              //       gs.map((g) => {
+              //         g.scaleX = lScaleX
+              //         g.scaleY = lScaleY
+              //         g.top = (g.top * scaleX ) 
+              //         g.left =  (g.left  * scaleY)
                       
-                      // console.log('ggggggg', g)
-                    })
-                    console.log('gs', gs.length)
-                  }  else {
+              //         // console.log('ggggggg', g)
+              //       })
+              //       console.log('gs', gs.length)
+
+
+              //       const {width: gW, height:gH, scaleX: gScaleX, scaleY: gScaleY, left: gL, top: gT} = layer
+              //       const {width: i0W, height: i0H, scaleX: i0ScaleX, scaleY: i0ScaleY, left: i0L, top: i0T} = gs[0]
+              //       const {width: curW, height: curH, scaleX: curScaleX, scaleY: curScaleY, left: curL, top: curT} = objects[index + 1]
+                  
+              //       const gPos ={
+              //         x: gL ,
+              //         y: gT ,
+              //       }
+
+              //       const cPos = {
+              //           x: i0L,
+              //         y: i0T ,
+              //       }
+
+              //         const curPos = {
+              //           x: curL ,
+              //         y: curT,
+              //       }
+
+              //       console.log('curPos', curPos)
+              //       console.log('gPos', gPos)
+              //         layer.left = parseInt(layer.left + (curPos.x - (cPos.x + gPos.x)))
+              //         layer.top =  parseInt(layer.top + (curPos.y - (cPos.y + gPos.y)))
+              //     }  else {
                     
-                    let { x, y } = iObjects[index].getCenterPoint()
-                    const dirMoveL =
-                      (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
-                    const dirMoveT =
-                      (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
+              //       let { x, y } = iObjects[index].getCenterPoint()
+              //       const dirMoveL =
+              //         (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
+              //       const dirMoveT =
+              //         (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
 
-                    layer.scaleX = iObjects[index].scaleX * scaleX
-                    layer.scaleY = iObjects[index].scaleY * scaleY
-                    layer.left = iObjects[index].left + dirMoveL
-                    layer.top = iObjects[index].top + dirMoveT
-                    layer.id = iObjects[index].id
-                  }
+              //       layer.scaleX = iObjects[index].scaleX * scaleX
+              //       layer.scaleY = iObjects[index].scaleY * scaleY
+              //       layer.left = iObjects[index].left + dirMoveL
+              //       layer.top = iObjects[index].top + dirMoveT
+              //       layer.id = iObjects[index].id
+              //     }
 
-              }
+              // }
         
 
               this.formatObjectsData(iObjects, objects)
