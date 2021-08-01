@@ -170,11 +170,15 @@ export default {
                 this.getOnGroupDesiginInstanceByIndex(instanceIndex).canvas
               const json = canvas.toJSON()
 
+              json.objects = json.objects
+              // json.objects = json.objects.filter(({type}) => type !== 'group')
               const objects = json.objects
               console.log('scaleX, scaleY', scaleX, scaleY)
               const iObjects = canvas.getObjects()
+              // const iObjects = canvas.getObjects().filter(({type}) => type !== 'group')
               console.log('objects', objects)
               console.log('iObjects', iObjects)
+          
               // objects.map((layer, index) => {
               //   let { x, y } = iObjects[index].getCenterPoint()
               //   const dirMoveL =
@@ -204,12 +208,16 @@ export default {
                     const dirMoveT =
                       (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
                     layer.id = `${objects[index + 1].id}Group`
+
+                       layer.left = layer.left+dirMoveL
+                      layer.top = layer.top+dirMoveT
+
                     const gs = layer.objects
                     gs.map((g) => {
                       g.scaleX = lScaleX
                       g.scaleY = lScaleY
-                      g.top = (g.top * scaleX + dirMoveT) 
-                      g.left =  (g.left  * scaleY + dirMoveL)
+                      g.top = (g.top * scaleX ) 
+                      g.left =  (g.left  * scaleY)
                       
                       // console.log('ggggggg', g)
                     })
@@ -248,7 +256,8 @@ export default {
             this.UPDATE_ONE_GROUP_TRANSFORM_LIST_DATA(tmpArr)
             this.UPDATE_DESIGN_TYPE(type)
           })
-          .catch(() => {
+          .catch((err) => {
+            console.log('err', err)
             this.$message({
               type: 'info',
               message: '已取消'

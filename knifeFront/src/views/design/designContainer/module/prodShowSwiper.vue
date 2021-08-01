@@ -45,7 +45,7 @@
 import SwiperWrapper from '@/components/swiperWrapper'
 import Magnifier from '@/components/magnifier'
 import { mapGetters, mapMutations } from 'vuex'
-import { fabricInstanceMixin } from '../mixins'
+import { fabricInstanceMixin,copyLayerTileMixin1 } from '../mixins'
 import { getURLBlod, file2Content, getImgData, getUUID } from '@/utils'
 //引入worker-loader
 import Worker from './calcBetterProShow22.worker.js'
@@ -63,7 +63,7 @@ import {
 } from '@/utils/constant'
 
 export default {
-  mixins: [fabricInstanceMixin],
+  mixins: [fabricInstanceMixin,copyLayerTileMixin1],
   components: {
     SwiperWrapper,
     Magnifier
@@ -382,7 +382,36 @@ export default {
       canvas.remove(g)
     },
 
+      calcRealPosByGgroupObj(group, gLayer) {
+      const mGroup = group.calcTransformMatrix(true)
+      const mObject = gLayer.calcTransformMatrix(true)
+      fabric.util.qrDecompose(mGroup)
+      fabric.util.qrDecompose(mObject)
+      const mTotal = fabric.util.multiplyTransformMatrices(mGroup, mObject)
+      const ce = new fabric.Point(0, 0)
+      const p = fabric.util.transformPoint(ce, mTotal)
+      return p
+    },
+
+       getRotatePoint ({rX, rY, oX, oY, angle}) {
+            const {PI, cos, sin} = Math
+            const rotate = PI/180 * -angle
+            let x = (rX - oX) * cos(rotate) - (rY - oY) * sin(rotate) + oX
+            let y = (rY - oY) * cos(rotate) + (rX - oX) * sin(rotate) + oY
+            console.log(x, y)
+            const dirX = x - rX
+            const dirY = y - rY
+            console.log(dirX, dirY)
+            return {
+                dirX,
+                dirY
+            }
+        },
+       
+
     oneGroupDesignToChunkDesign (instanceIndex) {
+      var t0 = performance.now()
+
       const {
           l,
           t,
@@ -410,23 +439,45 @@ export default {
           
            if (layer.type === 'group') {
             if (!objects[index + 1]) return
-            const { scaleX:lScaleX, scaleY: lScaleY, left, top } = objects[index + 1]
+            const { scaleX:lScaleX, scaleY: lScaleY, left, top, width, height } = objects[index + 1]
+            objects[index].isDelete = true
              let { x, y } = iObjects[index + 1].getCenterPoint()
             const dirMoveL =
               (1 / oRadio) * moveL + (x - cL) * (1 / oRadio - 1)
             const dirMoveT =
               (1 / oRadio) * moveT + (y - cT) * (1 / oRadio - 1)
-
+              // layer.objects = [layer.objects[0]]
             const gs = layer.objects
-            gs.map((g) => {
+            const cGs = iObjects[index].getObjects()
+            let dirL = 0
+              let dirT = 0
+              layer.left = layer.left+dirMoveL
+              layer.top = layer.top+dirMoveT
+            gs.map((g, gIndex) => {
+            
               g.scaleX = lScaleX
               g.scaleY = lScaleY
-              g.top = (g.top * scaleX + dirMoveT) 
-              g.left =  (g.left  * scaleY + dirMoveL)
 
-              // console.log('ggggggg', g)
+              if(gIndex == 0) {
+                const {dirX, dirY} = this.getRotatePoint({rX: left - width *lScaleX / 2, rY:  top - height *lScaleX / 2, oX: left, oY: top, angle: 90})
+                dirL = dirX
+                dirT = dirY
+
+                console.log('dirL', dirL)
+                console.log('dirT', dirT)
+                console.log('left', left)
+                console.log('top', top)
+              }
+
+              // g.left =  (g.left * scaleX + dirMoveL) + dirL 
+              // g.top = (g.top * scaleY + dirMoveT) +dirT
+               g.left =  (g.left * scaleX) 
+              g.top = (g.top * scaleY) 
+              
+              
+              
             })
-            console.log('gs', gs.length)
+            // console.log('gs', gs.length)
           }  else {
             
              let { x, y } = iObjects[index].getCenterPoint()
@@ -444,8 +495,10 @@ export default {
 
         }
         
-
+       var t1 = performance.now()
+       console.log('t1-t0', t1-t0)
         // console.log('json', json)
+        // json.objects = json.objects.filter(({isDelete}) =>!isDelete)
         return json
            
     },
@@ -558,7 +611,6 @@ export default {
 
               let {realWidth, realHeight} = this.getRealWidthAndHeight({pW: width, pH: height})
 
-              console.log(`kkk_${k}`, realWidth, realHeight)
               //获取 realWidth和realHeight
               // if(realWidth === undefined || realHeight === undefined) {
               //     await new Promise(resolve => {
@@ -581,7 +633,7 @@ export default {
                 //获取转换之后的json
                json = this.oneGroupDesignToChunkDesign(k)
               } else {
-                this.formatCarefulJson(fabricListItem, json)
+                // this.formatCarefulJson(fabricListItem, json)
               }
 
               console.log('json1111', json)
@@ -604,8 +656,8 @@ export default {
                   size: Math.max(white_show.width, white_show.height)
                 })
 
-                console.log(`radio_${k}`, radio)
                 
+
                 //存在复制情况下scaleX，scaleY精度不够
                 // if(!this.isOneGroupDesign) {
                 //    const os = c.getObjects()

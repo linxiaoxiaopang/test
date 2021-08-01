@@ -48,6 +48,8 @@ export default {
   created() {},
   mounted() {
     this.canvas = new fabric.Canvas(this.id, { preserveObjectStacking: true });
+
+   
     let canvas = this.canvas;
     // const renderAll = canvas.renderAll;
     // 重写canvas.renderAll 方法，每次调用renderAll方法$emit当前canvas图层信息对象
@@ -63,6 +65,9 @@ export default {
     //   $this.$emit("renderAllHandler", this.getObjects());
     // };
     const degreesToRadians = fabric.util.degreesToRadians;
+    //重写小数点精度
+ 
+     fabric.Object.NUM_FRACTION_DIGITS = 17
     //重写_setupCurrentTransform
     fabric.util.object.extend(fabric.Canvas.prototype, {
       _setupCurrentTransform: function (e, target) {
