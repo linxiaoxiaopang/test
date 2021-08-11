@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import app from './modules/app'
+import window from './modules/window'
 import api from './modules/api'
 import user from './modules/user'
 import tagsView from './modules/tagsView'
@@ -16,6 +17,7 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   modules: {
     app,
+    window,
     api,
     user,
     tagsView,

@@ -47,7 +47,7 @@ export default {
   },
   created() {},
   mounted() {
-    this.canvas = new fabric.Canvas(this.id, { preserveObjectStacking: true });
+    this.canvas = new fabric.Canvas(this.id, { preserveObjectStacking: true, enableRetinaScaling: true });
 
    
     let canvas = this.canvas;

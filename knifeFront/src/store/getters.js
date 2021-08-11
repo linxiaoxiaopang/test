@@ -2,6 +2,8 @@ import dic from '@/store/modules/dic'
 import store from '@/store/index'
 
 const getters = {
+  devicePixelRatio:state => state.window.windowData.devicePixelRatio,
+  
   sidebar: (state) => state.app.sidebar,
 
   device: (state) => state.app.device,

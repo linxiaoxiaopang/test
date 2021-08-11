@@ -116,7 +116,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['previewShow']),
+    ...mapGetters(['previewShow', 'devicePixelRatio']),
 
     colors() {
       const { prim_struct } = this.protoObj || []
@@ -180,7 +180,8 @@ export default {
         const f = new fabric.Canvas(getUUID() + '', {
           preserveObjectStacking: true,
           width: DESIGN_SHOW_AREA_W,
-          height: DESIGN_SHOW_AREA_H
+          height: DESIGN_SHOW_AREA_H,
+          enableRetinaScaling: true
         })
         tmpArr.push(f)
       }
@@ -750,7 +751,8 @@ export default {
                 // }
                
                 //新增解决浏览器放大缩小的问题
-                const devicePixelRatio =  window.devicePixelRatio
+                // const devicePixelRatio =  window.devicePixelRatio
+                const devicePixelRatio = this.devicePixelRatio
                 c.setZoom(radio / devicePixelRatio)
                 c.setHeight(fabricListItem.canvas.getHeight() * radio / devicePixelRatio)
                 c.setWidth(fabricListItem.canvas.getWidth() * radio / devicePixelRatio)
@@ -864,19 +866,20 @@ export default {
                  
                 // }
                 const { round } = Math
+                console.log('round(l), round(t), round(w), round(h)', round(l), round(t), round(w), round(h))
                 const data = c.getContext('2d').getImageData(round(l), round(t), round(w), round(h))
 
-                //  let c1 = document.createElement('canvas')
-                //     const ctx = c1.getContext('2d')
-                //    c1.width =data.width
-                //   c1.height = data.height
+                 let c1 = document.createElement('canvas')
+                    const ctx = c1.getContext('2d')
+                   c1.width =data.width
+                  c1.height = data.height
                  
-                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, 700 * radio, 700 * radio), 0, 0)
-                //   // ctx.putImageData(c.getContext('2d').getImageData(0, 0, c.width, c.height), 0, 0)
-                //   ctx.putImageData(data, 0, 0)
-                //             //  const base64 = c1.toDataURL()
-                //   const base64 = c.toDataURL()
-                //   console.log(`base64_${k}`, base64)
+                  // ctx.putImageData(c.getContext('2d').getImageData(0, 0, 700 * radio, 700 * radio), 0, 0)
+                  // ctx.putImageData(c.getContext('2d').getImageData(0, 0, c.width, c.height), 0, 0)
+                  ctx.putImageData(data, 0, 0)
+                             const base64 = c1.toDataURL()
+                  // const base64 = c.toDataURL()
+                  console.log(`base64_${k}`, base64)
                 kl_mask.wRadio = wRadio
                 kl_mask.hRadio = hRadio
                 data.cols = data.width
