@@ -37,6 +37,9 @@ export default {
   mounted () {
     this.canvas = new fabric.Canvas(this.id, { preserveObjectStacking: true });
     let canvas = this.canvas;
+    // fabric.Object.prototype.NUM_FRACTION_DIGITS = 12
+    console.log('fabric.Object.NUM_FRACTION_DIGITS', fabric.Object.NUM_FRACTION_DIGITS)
+    fabric.Object.NUM_FRACTION_DIGITS
     fabric.Canvas.prototype.customiseControls({
       tl: {
         action: 'scale'
