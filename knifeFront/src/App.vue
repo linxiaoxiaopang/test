@@ -33,6 +33,8 @@ export default {
   },
 
   mounted () {
+    333
+    222
     1111
     //设置window信息
     this.setWindowData()
