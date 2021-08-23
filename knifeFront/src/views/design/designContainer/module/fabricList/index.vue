@@ -294,6 +294,19 @@ export default {
 <style lang="scss" scoped>
 .fabricListComponent {
   box-shadow: 0px 3px 10px 0px rgba(47, 72, 124, 0.14);
+
+   padding: 0;
+    box-sizing: border-box;
+    /* border: dashed 1px #74c0fc; */
+   
+    background-image: linear-gradient(
+45deg
+, rgba(0, 0, 0, 0.15) 25%, transparent 0, transparent 75%, rgba(0, 0, 0, 0.15) 0), linear-gradient(
+45deg
+, rgba(0, 0, 0, 0.15) 25%, transparent 0, transparent 75%, rgba(0, 0, 0, 0.15) 0);
+    background-position: 0 0,15px 15px;
+    background-size: 32px 32px;
+    position: relative;
   .el-carousel__item {
     display: flex;
     align-items: center;

@@ -906,6 +906,25 @@ export function shakeChilrenBeRow(results) {
   }
 }
 
+
+//rx,ry 围绕oX, oY点 获取旋转之后的角度
+export function getRotatePoint({ rX, rY, oX, oY, angle }) {
+  const { PI, cos, sin } = Math
+  const rotate = (PI / 180) * -angle
+  let x = (rX - oX) * cos(rotate) - (rY - oY) * sin(rotate) + oX
+  let y = (rY - oY) * cos(rotate) + (rX - oX) * sin(rotate) + oY
+  console.log(x, y)
+  const dirX = x - rX
+  const dirY = y - rY
+  console.log(dirX, dirY)
+  return {
+    dirX,
+    dirY,
+    x,
+    y
+  }
+}
+
 export const isUatOrPro =
   process.env.VUE_APP_BASE_URL === 'www.uat.zdcustom.com' ||
   process.env.VUE_APP_BASE_URL === 'www.zdcustom.com'
