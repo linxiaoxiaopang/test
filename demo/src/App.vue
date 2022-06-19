@@ -1,14 +1,18 @@
 <template>
   <div id="app">
-    <router-link :to="path" :key="index" v-for="({ path }, index) in routes"
-      >{{path}}</router-link
-    >
-    <router-view />
+    <router-link :to="path" :key="index" v-for="({ path }, index) in routes">
+      {{ path }}
+    </router-link>
+
+    <keep-alive>
+      <router-view/>
+    </keep-alive>
   </div>
 </template>
 
 <script>
-import { routes } from "@/router";
+import {routes} from "@/router";
+
 export default {
   name: "App",
 

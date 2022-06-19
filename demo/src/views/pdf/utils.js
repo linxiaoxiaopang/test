@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import axios from "axios";
-import { isArray, isString } from "lodash";
-import { Loading } from "element-ui";
+import { isArray, isString, isFunction } from "lodash";
+import { Loading, Message } from "element-ui";
 /**
  * @description: 文件转换成二进制字符串
  * @param {String} url
@@ -123,7 +123,7 @@ export async function getPdfUrlByDom(dom, name, option = {}) {
 async function getJsPdfDoc(dom, name, option = {}) {
   console.log("dom", dom);
 
-  const { ceil } = Math;
+  const { ceil, max } = Math;
   if (!dom) {
     throw Error("请输入dom元素");
   }
@@ -138,9 +138,10 @@ async function getJsPdfDoc(dom, name, option = {}) {
   option = Object.assign({}, defaultOption, option);
 
   const { format } = option;
-  const w = Math.max(dom.clientWidth, dom.scrollWidth, dom.offsetWidth);
-  const h = Math.max(dom.clientHeight, dom.scrollHeight, dom.offsetHeight);
-  let [wPt, hPt] = PT_PAPER_FORMATS.a5;
+  const w = max(dom.clientWidth, dom.scrollWidth, dom.offsetWidth) || 0.000001; //防止w作为分母，出现NAN
+  const h = max(dom.clientHeight, dom.scrollHeight, dom.offsetHeight);
+
+  let [wPt, hPt] = PT_PAPER_FORMATS.a4;
   if (isArray(format)) {
     wPt = format[0];
     hPt = format[1];
@@ -151,7 +152,7 @@ async function getJsPdfDoc(dom, name, option = {}) {
   }
   wPt = (w / 96) * 72;
   hPt = (h / 2 / 96) * 72;
-  option.format = [wPt, hPt]
+  option.format = [wPt, hPt];
   //宽大于长
   if (hPt < wPt) {
     option.orientation = "l";
@@ -162,7 +163,9 @@ async function getJsPdfDoc(dom, name, option = {}) {
   doc.addFileToVFS("simhei.ttf", myFont);
   doc.addFont("simhei.ttf", "simhei", "normal");
   doc.setFont("simhei");
-  const scale = wPt / w;
+  //jspdf 计算存在偏差，手动矫正
+  const formatwPt = (w / 96) * 72;
+  const scale = formatwPt / w;
   const scaleH = hPt / scale;
   const pageNum = ceil(h / scaleH);
 
@@ -185,26 +188,28 @@ async function getJsPdfDoc(dom, name, option = {}) {
           y: 0,
           //   width: 72,
         },
-        callback: (doc1) => {
+        callback(doc1) {
           //pdf页面数量
           const docPageNum = doc.internal.getNumberOfPages();
           //所有页面大于应该生成的页码
-          if (docPageNum > pageNum) {
+          if (docPageNum > pageNum && docPageNum != 0) {
             //删除最后的空白页面
             doc.deletePage(docPageNum);
           }
-          // console.log('doc', doc)
-          // console.log('doc', doc.context2d)
-          // console.log('doc', doc.API)
-          // console.log('doc', doc.getPageHeight())
-          // console.log('doc', doc.getPageWidth())
-          // doc.setPage(0)
-          // console.log('doc', doc.text(10, 10, 'hello world'))
+
           resolve(doc1);
         },
       });
     } catch (err) {
       console.log(err);
+      callbackHandler(
+        {
+          name,
+          dom,
+          ...option,
+        },
+        false
+      );
       reject(err);
     }
   });
@@ -283,4 +288,14 @@ export function loadImage(image) {
     };
     pollImage();
   });
+}
+
+function callbackHandler(option, isSuccess = true) {
+  const { onError, onSuccess } = option;
+  if (!isSuccess) {
+    if (isFunction(onError)) return onError(option);
+    Message.error("打印失败");
+  }
+
+  if (isFunction(onSuccess)) return onSuccess(option);
 }

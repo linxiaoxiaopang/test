@@ -1,5 +1,12 @@
 <template>
-  <div @click="clickHandler">DialogForm</div>
+  <div >
+    <el-pagination :size="10" :total="100" layout="slot,slot,slot">
+      <template>
+        111
+      </template>
+    </el-pagination>
+    DialogForm
+  </div>
 </template>
 
 <script>

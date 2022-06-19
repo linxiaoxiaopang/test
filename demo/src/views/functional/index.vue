@@ -1,6 +1,7 @@
 <template>
   <div>
     functional
+    <hello1 msg="你好，世界！1111"/>
     <Functional :type="type" haha="哈哈" @click="clickHandler" />
     <Functional1 :vnode="vnode" haha="哈哈" @click="clickHandler" />
     <Functional2>
@@ -13,6 +14,7 @@
 </template>
 
 <script>
+import hello from "vue-lin-hello";
 import Functional from "./functional";
 import Functional1 from "./functional1";
 import Functional2 from "./functional2";
@@ -21,6 +23,7 @@ export default {
     Functional,
     Functional1,
     Functional2,
+    hello1: hello
   },
 
   data() {
