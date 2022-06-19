@@ -31,6 +31,10 @@ export default {
       default: null,
     },
 
+    onError: Function,
+
+    onSuccess: Function,
+
     name: {
       type: String,
       default: "打印文档",
@@ -61,8 +65,6 @@ export default {
       loading: false,
     };
   },
-
-
 
   methods: {
     async printHandler() {
@@ -95,7 +97,7 @@ export default {
 
     async getWebPrintData() {
       try {
-        const { name, type, paperSize } = this;
+        const { name, type, paperSize, onError, onSuccess } = this;
         let printable = await this.getPrintable();
         if (type !== "pdf") {
           const el = await this.getHtmlDom();
@@ -104,15 +106,26 @@ export default {
           if (!el) return [true, "打印dom不存在"];
           printable = await getPdfUrlByDom(el, name, {
             format: paperSize,
+            onError,
+            onSuccess,
           });
         }
         return [
           false,
-          createPrintCallbackParams({
-            documentTitle: name,
-            name,
-            printable,
-          }),
+          createPrintCallbackParams(
+            {
+              documentTitle: name,
+              name,
+              printable,
+            },
+            () => {
+              if (onSuccess) {
+                setTimeout(() => {
+                  onSuccess();
+                }, 500);
+              }
+            }
+          ),
         ];
       } catch {
         return [true, "打印异常"];

@@ -1,26 +1,64 @@
 <template>
   <div>
-    <PrintBtn
+    <!-- <PrintBtn
       class="btn"
       printable="hello"
       type="html"
       :paperSize="[85.03937007874015, 198.4251968503937]"
-    />
-    <div class="dom" id="hello">
-      <div class="item">hello wrold</div>
+    /> -->
+    <el-button @click="print"> 打印 </el-button>
+    <!-- <div class="dom" id="hello">
+      <div class="item">
+        <div id="hl">
+          hello wrold
+        </div>
+      </div>
       <div class="item">hello wrold 1</div>
-    </div>
+    </div> -->
+    <Dialog ref="dialog" />
+
+    <ConfirmDialog
+      v-if="confirmVisible"
+      :confirmVisible.sync="confirmVisible"
+      :selectData="tableData"
+    />
   </div>
 </template>
 
 <script>
-import PrintBtn from "./printBtn";
+import "./lodopPrintPdf";
+import Dialog from "./dialog";
+
+import ConfirmDialog from "./confirmDialog";
+// import PrintBtn from "./printBtn";
 export default {
   components: {
-    PrintBtn,
+    // PrintBtn,
+    Dialog,
+    ConfirmDialog,
   },
-  mounted() {
-    document.body.appendChild(document.getElementById("hello"));
+
+  data() {
+    return {
+      confirmVisible: false,
+      tableData: [],
+    };
+  },
+
+  methods: {
+    showDialog() {
+      this.confirmVisible = true;
+    },
+
+    print() {
+      this.showDialog();
+      return;
+      // this.$refs.dialog.dialog = true;
+      // this.$lodopPrintPdf({
+      //   type: 'html',
+      //   printable: document.getElementById('hello')
+      // })
+    },
   },
 };
 </script>
@@ -33,7 +71,7 @@ export default {
 .dom {
   position: fixed;
   left: 0;
-  top: 0;
+  top: 80px;
   width: 85.03pt;
   box-sizing: border-box;
 }
@@ -47,6 +85,10 @@ export default {
 }
 .item:nth-child(2) {
   background: green;
+}
+#hl {
+  margin-top: 50px;
+  background: yellow;
 }
 @media screen and (min-resolution: 96dpi) {
   .item {
